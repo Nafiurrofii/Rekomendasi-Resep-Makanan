@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -84,9 +83,15 @@ fun RecipeCard(
 private fun RecipeCardPreview() {
     RekomendasiResepMakananTheme {
         RecipeCard(
-            // Pastikan menggunakan resource ID yang valid, misal R.drawable.rendang1 jika ada
-            // Gunakan 0 atau resource default lain untuk preview jika rendang1 tidak terbaca di preview context
-            recipe = Recipe(1, "Rendang", "Nusantara", R.drawable.ic_launcher_background) 
+            recipe = Recipe(
+                id = 1, 
+                title = "Rendang", 
+                category = "Nusantara", 
+                image = R.drawable.ic_launcher_background,
+                description = "Deskripsi singkat",
+                ingredients = listOf("Bahan 1"),
+                steps = listOf("Langkah 1")
+            ) 
         )
     }
 }

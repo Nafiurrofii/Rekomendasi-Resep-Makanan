@@ -29,6 +29,7 @@ import com.rekomendasiresepmakanan.ui.theme.RekomendasiResepMakananTheme
 @Composable
 fun SearchScreen(
     onNavigateHome: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit, // Parameter baru ditambahkan
     viewModel: SearchViewModel = viewModel()
 ) {
     val query by viewModel.searchQuery.collectAsState()
@@ -80,7 +81,7 @@ fun SearchScreen(
                                                 .padding(16.dp),
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        Divider(color = Color.White.copy(alpha = 0.5f))
+                                        HorizontalDivider(color = Color.White.copy(alpha = 0.5f))
                                     }
                                 }
                             }
@@ -99,7 +100,10 @@ fun SearchScreen(
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         items(searchResults) { recipe ->
-                            RecipeGridItem(recipe = recipe)
+                            // Menambahkan navigasi saat item diklik
+                            Box(modifier = Modifier.clickable { onNavigateToDetail(recipe.id) }) {
+                                RecipeGridItem(recipe = recipe)
+                            }
                         }
                     }
                 }
@@ -118,18 +122,16 @@ fun SearchBottomBar(onNavigateHome: () -> Unit) {
             selected = false,
             onClick = onNavigateHome,
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
-                unselectedIconColor = Color.DarkGray, // Darker gray for unselected
+                unselectedIconColor = Color.DarkGray,
                 indicatorColor = Color.Transparent
             )
         )
         NavigationBarItem(
-            selected = true,
-            onClick = {}, // Already on search
+            selected = true, 
+            onClick = {}, 
             icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 unselectedIconColor = Color.DarkGray,
@@ -140,7 +142,6 @@ fun SearchBottomBar(onNavigateHome: () -> Unit) {
             selected = false,
             onClick = {},
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Saved") },
-            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 unselectedIconColor = Color.DarkGray,
@@ -154,6 +155,9 @@ fun SearchBottomBar(onNavigateHome: () -> Unit) {
 @Composable
 fun SearchScreenPreview() {
     RekomendasiResepMakananTheme {
-        SearchScreen(onNavigateHome = {})
+        SearchScreen(
+            onNavigateHome = {},
+            onNavigateToDetail = {}
+        )
     }
 }

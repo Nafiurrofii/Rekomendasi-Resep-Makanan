@@ -2,6 +2,7 @@ package com.rekomendasiresepmakanan.ui.screen.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit, // Parameter baru ditambahkan
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -43,7 +45,7 @@ fun HomeScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = Color(0xFFE6E6FA) // Ungu pastel transparan (solid for drawer)
+                drawerContainerColor = Color(0xFFE6E6FA)
             ) {
                 Spacer(Modifier.height(24.dp))
                 Text(
@@ -121,7 +123,14 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(popularRecipes) { recipe ->
-                        RecipeCard(recipe = recipe)
+                        // Tambahkan onClick handler untuk navigasi ke detail
+                        // Catatan: RecipeCard perlu dimodifikasi untuk support onClick, 
+                        // atau kita wrap dengan clickable di sini.
+                        // Mari asumsikan kita wrap RecipeCard dengan Box clickable atau modifikasi RecipeCard nanti.
+                        // Untuk saat ini, saya wrap dengan Box agar bisa diklik.
+                        Box(modifier = Modifier.clickable { onNavigateToDetail(recipe.id) }) {
+                             RecipeCard(recipe = recipe)
+                        }
                     }
                 }
                 
@@ -154,7 +163,6 @@ fun BannerSection() {
             .clip(RoundedCornerShape(16.dp))
             .background(Color.LightGray) 
     ) {
-        // Menggunakan gambar rendang1.jpeg untuk banner
         Image(
             painter = painterResource(id = R.drawable.rendang1),
             contentDescription = "Banner Masakan Nusantara",
@@ -162,7 +170,6 @@ fun BannerSection() {
             modifier = Modifier.fillMaxSize()
         )
         
-        // Gradient overlay untuk teks
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -210,15 +217,15 @@ fun SectionHeader(title: String) {
 fun HomeBottomBar(onNavigateToSearch: () -> Unit) {
     NavigationBar(
         containerColor = Color.White,
-        contentColor = Color.DarkGray // Lebih gelap
+        contentColor = Color.DarkGray
     ) {
         NavigationBarItem(
             selected = true,
             onClick = {},
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color.Black, // Ikon aktif warna hitam
-                unselectedIconColor = Color.DarkGray, // Ikon non-aktif abu-abu gelap
+                selectedIconColor = Color.Black,
+                unselectedIconColor = Color.DarkGray,
                 indicatorColor = Color.Transparent
             )
         )
@@ -249,6 +256,9 @@ fun HomeBottomBar(onNavigateToSearch: () -> Unit) {
 @Composable
 fun HomeScreenPreview() {
     RekomendasiResepMakananTheme {
-        HomeScreen(onNavigateToSearch = {})
+        HomeScreen(
+            onNavigateToSearch = {},
+            onNavigateToDetail = {}
+        )
     }
 }

@@ -80,7 +80,15 @@ fun RecipeGridItem(
 private fun RecipeGridItemPreview() {
     RekomendasiResepMakananTheme {
         RecipeGridItem(
-            recipe = Recipe(1, "Rendang", "Nusantara", R.drawable.ic_launcher_background)
+            recipe = Recipe(
+                id = 1, 
+                title = "Rendang", 
+                category = "Nusantara", 
+                image = R.drawable.ic_launcher_background,
+                description = "Deskripsi singkat",
+                ingredients = listOf("Bahan 1"),
+                steps = listOf("Langkah 1")
+            )
         )
     }
 }
