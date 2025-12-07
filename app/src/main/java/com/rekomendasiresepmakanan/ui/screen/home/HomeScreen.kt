@@ -36,7 +36,7 @@ fun HomeScreen(
     onNavigateToDetail: (Int) -> Unit,
     onNavigateToCategories: () -> Unit, 
     onNavigateToCategoryDetail: (String) -> Unit,
-    onNavigateToFavorite: () -> Unit, // Ditambahkan
+    onNavigateToFavorite: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -70,12 +70,7 @@ fun HomeScreen(
                     onClick = { scope.launch { drawerState.close() } },
                     icon = { Icon(Icons.Default.Add, contentDescription = null) }
                 )
-                NavigationDrawerItem(
-                    label = { Text("Resep Tersimpan") },
-                    selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
-                    icon = { Icon(Icons.Default.Bookmark, contentDescription = null) }
-                )
+                // Item "Resep Tersimpan" dihapus
                 NavigationDrawerItem(
                     label = { Text("Tentang App") },
                     selected = false,
@@ -221,7 +216,7 @@ fun SectionHeader(title: String, onSeeAllClick: () -> Unit = {}) {
 @Composable
 fun HomeBottomBar(
     onNavigateToSearch: () -> Unit,
-    onNavigateToFavorite: () -> Unit // Ditambahkan
+    onNavigateToFavorite: () -> Unit
 ) {
     NavigationBar(
         containerColor = Color.White,
@@ -269,7 +264,7 @@ fun HomeScreenPreview() {
             onNavigateToDetail = {},
             onNavigateToCategories = {},
             onNavigateToCategoryDetail = {},
-            onNavigateToFavorite = {} // Ditambahkan
+            onNavigateToFavorite = {}
         )
     }
 }
