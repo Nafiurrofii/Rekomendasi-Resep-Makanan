@@ -34,9 +34,11 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
-    onNavigateToCategories: () -> Unit, 
+    onNavigateToCategories: () -> Unit,
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToFavorite: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToProfile: () -> Unit, // Ditambahkan
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -61,7 +63,10 @@ fun HomeScreen(
                 NavigationDrawerItem(
                     label = { Text("Profile") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onNavigateToProfile()
+                    },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) }
                 )
                 NavigationDrawerItem(
@@ -70,11 +75,13 @@ fun HomeScreen(
                     onClick = { scope.launch { drawerState.close() } },
                     icon = { Icon(Icons.Default.Add, contentDescription = null) }
                 )
-                // Item "Resep Tersimpan" dihapus
                 NavigationDrawerItem(
                     label = { Text("Tentang App") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onNavigateToAbout()
+                    },
                     icon = { Icon(Icons.Default.Info, contentDescription = null) }
                 )
             }
@@ -264,7 +271,9 @@ fun HomeScreenPreview() {
             onNavigateToDetail = {},
             onNavigateToCategories = {},
             onNavigateToCategoryDetail = {},
-            onNavigateToFavorite = {}
+            onNavigateToFavorite = {},
+            onNavigateToAbout = {},
+            onNavigateToProfile = {} // Ditambahkan
         )
     }
 }

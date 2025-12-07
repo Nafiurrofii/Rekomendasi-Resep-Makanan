@@ -6,14 +6,18 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.rekomendasiresepmakanan.ui.screen.detail.DetailScreen
-import com.rekomendasiresepmakanan.ui.screen.home.HomeScreen
-import com.rekomendasiresepmakanan.ui.screen.search.SearchScreen
-import com.rekomendasiresepmakanan.ui.screen.ingredients.IngredientsScreen
-import com.rekomendasiresepmakanan.ui.screen.steps.StepsScreen
-import com.rekomendasiresepmakanan.ui.screen.category.CategoryScreen
+import com.rekomendasiresepmakanan.ui.screen.about.AboutScreen
+import com.rekomendasiresepmakanan.ui.screen.auth.LoginScreen
+import com.rekomendasiresepmakanan.ui.screen.auth.ProfileScreen
+import com.rekomendasiresepmakanan.ui.screen.auth.RegisterScreen
 import com.rekomendasiresepmakanan.ui.screen.category.CategoryDetailScreen
+import com.rekomendasiresepmakanan.ui.screen.category.CategoryScreen
+import com.rekomendasiresepmakanan.ui.screen.detail.DetailScreen
 import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteScreen
+import com.rekomendasiresepmakanan.ui.screen.home.HomeScreen
+import com.rekomendasiresepmakanan.ui.screen.ingredients.IngredientsScreen
+import com.rekomendasiresepmakanan.ui.screen.search.SearchScreen
+import com.rekomendasiresepmakanan.ui.screen.steps.StepsScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -24,8 +28,45 @@ fun AppNavHost(navController: NavHostController) {
                 onNavigateToDetail = { recipeId -> navController.navigate("detail/$recipeId") },
                 onNavigateToCategories = { navController.navigate("categories") },
                 onNavigateToCategoryDetail = { categoryName -> navController.navigate("category_detail/$categoryName") },
-                onNavigateToFavorite = { navController.navigate("favorite") }
+                onNavigateToFavorite = { navController.navigate("favorite") },
+                onNavigateToAbout = { navController.navigate("about") },
+                onNavigateToProfile = { navController.navigate("profile") }
             )
+        }
+
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("profile") { popUpTo("login") { inclusive = true } }
+                },
+                onNavigateToRegister = { navController.navigate("register") },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("register") {
+            RegisterScreen(
+                onRegisterSuccess = { 
+                    navController.navigate("login") { popUpTo("register") { inclusive = true } }
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("profile") {
+            ProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onLogout = {
+                    // Diubah: kembali ke home screen setelah logout
+                    navController.navigate("home") { 
+                        popUpTo("home") { inclusive = true } 
+                    }
+                }
+            )
+        }
+
+        composable("about") { 
+            AboutScreen(onBackClick = { navController.popBackStack() }) 
         }
         
         composable("search") {
