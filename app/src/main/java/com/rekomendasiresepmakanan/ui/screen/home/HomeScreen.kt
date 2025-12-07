@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
+    onNavigateToCategories: () -> Unit, // Parameter baru
+    onNavigateToCategoryDetail: (String) -> Unit, // Parameter baru
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -104,13 +106,16 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Category Section
-                SectionHeader(title = "Kategori Resep")
+                SectionHeader(title = "Kategori Resep", onSeeAllClick = onNavigateToCategories)
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(categories) { category ->
-                        CategoryItem(category = category)
+                        CategoryItem(
+                            category = category,
+                            onClick = { onNavigateToCategoryDetail(category.name) }
+                        )
                     }
                 }
 
@@ -188,7 +193,7 @@ fun BannerSection() {
 }
 
 @Composable
-fun SectionHeader(title: String) {
+fun SectionHeader(title: String, onSeeAllClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,7 +208,8 @@ fun SectionHeader(title: String) {
         )
         Icon(
             imageVector = Icons.Default.ChevronRight,
-            contentDescription = "See all"
+            contentDescription = "See all",
+            modifier = Modifier.clickable(onClick = onSeeAllClick)
         )
     }
 }
@@ -253,8 +259,9 @@ fun HomeScreenPreview() {
     RekomendasiResepMakananTheme {
         HomeScreen(
             onNavigateToSearch = {},
-            // Perbaikan: Menambahkan parameter onNavigateToDetail dummy
-            onNavigateToDetail = {} 
+            onNavigateToDetail = {},
+            onNavigateToCategories = {},
+            onNavigateToCategoryDetail = {}
         )
     }
 }

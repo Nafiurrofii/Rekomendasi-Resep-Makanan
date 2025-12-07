@@ -10,10 +10,20 @@ class RecipeRepository {
 
     suspend fun getCategories(): List<Category> = withContext(Dispatchers.IO) {
         listOf(
-            Category(1, "Nusantara", ""),
+            Category(1, "Nusantara", ""), // Image placeholder string, UI will likely ignore or use default if empty for now
             Category(2, "Chinese", ""),
             Category(3, "Western", ""),
-            Category(4, "Vegan", "")
+            Category(4, "Dessert", ""),
+            Category(5, "Vegan", ""),
+            Category(6, "Jajanan", ""),
+            Category(7, "Healthy", ""),
+            Category(8, "Japanese", ""),
+            Category(9, "Timur", ""),
+            Category(10, "Turkish", ""),
+            Category(11, "Korean", ""),
+            Category(12, "Indian", ""),
+            Category(13, "Italian", ""),
+            Category(14, "Mexico", "")
         )
     }
 
@@ -45,11 +55,15 @@ class RecipeRepository {
         getDummyRecipes().find { it.id == id }
     }
 
+    suspend fun getRecipesByCategory(categoryName: String): List<Recipe> = withContext(Dispatchers.IO) {
+        getDummyRecipes().filter { 
+            it.category.equals(categoryName, ignoreCase = true) 
+        }
+    }
+
     private fun getDummyRecipes(): List<Recipe> {
         val descriptionText = "Rendang adalah hidangan tradisional khas suku Minangkabau di Sumatera Barat, Indonesia, yang telah mendunia karena rasanya yang kaya rempah dan proses pembuatannya yang unik. Berbeda dengan hidangan lain, rendang sebenarnya adalah nama untuk sebuah proses memasak, yaitu 'marandang', yang berarti mengeringkan atau memasak dalam waktu yang lama. Proses inilah yang menghasilkan tekstur kering dan cita rasa yang sangat khas."
         
-        // Data Bahan sesuai desain (menggunakan prefix khusus untuk header section jika diperlukan parsing, atau list flat)
-        // Di sini saya gunakan list flat, UI akan menganggap string yang tidak diawali angka sebagai Header/Bold
         val ingredientsRendang = listOf(
             "Bahan utama:",
             "1. 2 liter santan dari 2 butir kelapa tua",
@@ -73,7 +87,6 @@ class RecipeRepository {
             "6. Gula merah secukupnya"
         )
 
-        // Data Langkah sesuai desain
         val stepsRendang = listOf(
             "1. Haluskan bumbu:\nBlender atau ulek semua bahan bumbu halus hingga benar-benar lembut.",
             "2. Masak santan:\nMasukkan santan ke dalam wajan besar, tambahkan bumbu halus, serai, daun jeruk, daun salam, dan asam kandis. Aduk perlahan agar santan tidak pecah.",
@@ -84,6 +97,7 @@ class RecipeRepository {
             "7. Sajikan:\nAngkat dan sajikan rendang dengan nasi hangat."
         )
 
+        // Creating variations for demo purposes
         return listOf(
             Recipe(1, "Rendang", "Nusantara", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
             Recipe(2, "Fuyunghay", "Chinese", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
@@ -94,7 +108,12 @@ class RecipeRepository {
             Recipe(7, "Steak", "Western", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
             Recipe(8, "Gado-gado", "Nusantara", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
             Recipe(9, "Sate Ayam", "Nusantara", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
-            Recipe(10, "Pizza", "Western", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang)
+            Recipe(10, "Pizza", "Western", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
+            Recipe(11, "Sushi", "Japanese", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
+            Recipe(12, "Kimchi", "Korean", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
+            Recipe(13, "Curry", "Indian", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
+            Recipe(14, "Tacos", "Mexico", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
+            Recipe(15, "Bakso", "Jajanan", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang)
         )
     }
 }

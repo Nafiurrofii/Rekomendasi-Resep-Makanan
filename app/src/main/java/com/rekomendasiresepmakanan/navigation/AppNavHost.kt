@@ -11,6 +11,8 @@ import com.rekomendasiresepmakanan.ui.screen.home.HomeScreen
 import com.rekomendasiresepmakanan.ui.screen.search.SearchScreen
 import com.rekomendasiresepmakanan.ui.screen.ingredients.IngredientsScreen
 import com.rekomendasiresepmakanan.ui.screen.steps.StepsScreen
+import com.rekomendasiresepmakanan.ui.screen.category.CategoryScreen
+import com.rekomendasiresepmakanan.ui.screen.category.CategoryDetailScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -18,9 +20,12 @@ fun AppNavHost(navController: NavHostController) {
         composable("home") {
             HomeScreen(
                 onNavigateToSearch = { navController.navigate("search") },
-                // Menambahkan navigasi ke detail saat item diklik
                 onNavigateToDetail = { recipeId ->
                     navController.navigate("detail/$recipeId")
+                },
+                onNavigateToCategories = { navController.navigate("categories") },
+                onNavigateToCategoryDetail = { categoryName ->
+                    navController.navigate("category_detail/$categoryName")
                 }
             )
         }
@@ -30,8 +35,30 @@ fun AppNavHost(navController: NavHostController) {
                 onNavigateHome = {
                     navController.popBackStack("home", inclusive = false)
                 },
-                // Menambahkan navigasi ke detail dari hasil pencarian
                 onNavigateToDetail = { recipeId ->
+                    navController.navigate("detail/$recipeId")
+                }
+            )
+        }
+
+        composable("categories") {
+            CategoryScreen(
+                onBackClick = { navController.popBackStack() },
+                onCategoryClick = { categoryName ->
+                    navController.navigate("category_detail/$categoryName")
+                }
+            )
+        }
+
+        composable(
+            route = "category_detail/{categoryName}",
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+            CategoryDetailScreen(
+                categoryName = categoryName,
+                onBackClick = { navController.popBackStack() },
+                onRecipeClick = { recipeId ->
                     navController.navigate("detail/$recipeId")
                 }
             )
