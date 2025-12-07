@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit, // Parameter baru ditambahkan
+    onNavigateToDetail: (Int) -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -123,11 +123,6 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(popularRecipes) { recipe ->
-                        // Tambahkan onClick handler untuk navigasi ke detail
-                        // Catatan: RecipeCard perlu dimodifikasi untuk support onClick, 
-                        // atau kita wrap dengan clickable di sini.
-                        // Mari asumsikan kita wrap RecipeCard dengan Box clickable atau modifikasi RecipeCard nanti.
-                        // Untuk saat ini, saya wrap dengan Box agar bisa diklik.
                         Box(modifier = Modifier.clickable { onNavigateToDetail(recipe.id) }) {
                              RecipeCard(recipe = recipe)
                         }
@@ -258,7 +253,8 @@ fun HomeScreenPreview() {
     RekomendasiResepMakananTheme {
         HomeScreen(
             onNavigateToSearch = {},
-            onNavigateToDetail = {}
+            // Perbaikan: Menambahkan parameter onNavigateToDetail dummy
+            onNavigateToDetail = {} 
         )
     }
 }
