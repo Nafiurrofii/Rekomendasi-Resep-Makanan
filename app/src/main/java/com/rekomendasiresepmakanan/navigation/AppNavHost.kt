@@ -13,6 +13,7 @@ import com.rekomendasiresepmakanan.ui.screen.ingredients.IngredientsScreen
 import com.rekomendasiresepmakanan.ui.screen.steps.StepsScreen
 import com.rekomendasiresepmakanan.ui.screen.category.CategoryScreen
 import com.rekomendasiresepmakanan.ui.screen.category.CategoryDetailScreen
+import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -20,33 +21,33 @@ fun AppNavHost(navController: NavHostController) {
         composable("home") {
             HomeScreen(
                 onNavigateToSearch = { navController.navigate("search") },
-                onNavigateToDetail = { recipeId ->
-                    navController.navigate("detail/$recipeId")
-                },
+                onNavigateToDetail = { recipeId -> navController.navigate("detail/$recipeId") },
                 onNavigateToCategories = { navController.navigate("categories") },
-                onNavigateToCategoryDetail = { categoryName ->
-                    navController.navigate("category_detail/$categoryName")
-                }
+                onNavigateToCategoryDetail = { categoryName -> navController.navigate("category_detail/$categoryName") },
+                onNavigateToFavorite = { navController.navigate("favorite") }
             )
         }
         
         composable("search") {
             SearchScreen(
-                onNavigateHome = {
-                    navController.popBackStack("home", inclusive = false)
-                },
-                onNavigateToDetail = { recipeId ->
-                    navController.navigate("detail/$recipeId")
-                }
+                onNavigateHome = { navController.popBackStack("home", inclusive = false) },
+                onNavigateToDetail = { recipeId -> navController.navigate("detail/$recipeId") },
+                onNavigateToFavorite = { navController.navigate("favorite") }
+            )
+        }
+
+        composable("favorite") {
+            FavoriteScreen(
+                onNavigateToHome = { navController.popBackStack("home", inclusive = false) },
+                onNavigateToSearch = { navController.navigate("search") },
+                onNavigateToDetail = { recipeId -> navController.navigate("detail/$recipeId") }
             )
         }
 
         composable("categories") {
             CategoryScreen(
                 onBackClick = { navController.popBackStack() },
-                onCategoryClick = { categoryName ->
-                    navController.navigate("category_detail/$categoryName")
-                }
+                onCategoryClick = { categoryName -> navController.navigate("category_detail/$categoryName") }
             )
         }
 
@@ -58,9 +59,7 @@ fun AppNavHost(navController: NavHostController) {
             CategoryDetailScreen(
                 categoryName = categoryName,
                 onBackClick = { navController.popBackStack() },
-                onRecipeClick = { recipeId ->
-                    navController.navigate("detail/$recipeId")
-                }
+                onRecipeClick = { recipeId -> navController.navigate("detail/$recipeId") }
             )
         }
 
@@ -68,7 +67,6 @@ fun AppNavHost(navController: NavHostController) {
             route = "detail/{recipeId}",
             arguments = listOf(navArgument("recipeId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val recipeId = backStackEntry.arguments?.getInt("recipeId") ?: 0
             DetailScreen(
                 onBackClick = { navController.popBackStack() },
                 onNavigateToIngredients = { id -> navController.navigate("ingredients/$id") },

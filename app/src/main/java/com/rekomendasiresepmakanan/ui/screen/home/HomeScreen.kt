@@ -34,8 +34,9 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
-    onNavigateToCategories: () -> Unit, // Parameter baru
-    onNavigateToCategoryDetail: (String) -> Unit, // Parameter baru
+    onNavigateToCategories: () -> Unit, 
+    onNavigateToCategoryDetail: (String) -> Unit,
+    onNavigateToFavorite: () -> Unit, // Ditambahkan
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -91,7 +92,10 @@ fun HomeScreen(
                 })
             },
             bottomBar = {
-                HomeBottomBar(onNavigateToSearch = onNavigateToSearch)
+                HomeBottomBar(
+                    onNavigateToSearch = onNavigateToSearch,
+                    onNavigateToFavorite = onNavigateToFavorite
+                )
             }
         ) { paddingValues ->
             Column(
@@ -215,7 +219,10 @@ fun SectionHeader(title: String, onSeeAllClick: () -> Unit = {}) {
 }
 
 @Composable
-fun HomeBottomBar(onNavigateToSearch: () -> Unit) {
+fun HomeBottomBar(
+    onNavigateToSearch: () -> Unit,
+    onNavigateToFavorite: () -> Unit // Ditambahkan
+) {
     NavigationBar(
         containerColor = Color.White,
         contentColor = Color.DarkGray
@@ -242,7 +249,7 @@ fun HomeBottomBar(onNavigateToSearch: () -> Unit) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {},
+            onClick = onNavigateToFavorite,
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Saved") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
@@ -261,7 +268,8 @@ fun HomeScreenPreview() {
             onNavigateToSearch = {},
             onNavigateToDetail = {},
             onNavigateToCategories = {},
-            onNavigateToCategoryDetail = {}
+            onNavigateToCategoryDetail = {},
+            onNavigateToFavorite = {} // Ditambahkan
         )
     }
 }

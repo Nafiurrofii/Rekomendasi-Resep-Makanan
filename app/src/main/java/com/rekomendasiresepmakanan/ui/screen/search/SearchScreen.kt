@@ -29,7 +29,8 @@ import com.rekomendasiresepmakanan.ui.theme.RekomendasiResepMakananTheme
 @Composable
 fun SearchScreen(
     onNavigateHome: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit, // Parameter baru ditambahkan
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToFavorite: () -> Unit, // Ditambahkan
     viewModel: SearchViewModel = viewModel()
 ) {
     val query by viewModel.searchQuery.collectAsState()
@@ -38,7 +39,10 @@ fun SearchScreen(
 
     Scaffold(
         bottomBar = {
-            SearchBottomBar(onNavigateHome = onNavigateHome)
+            SearchBottomBar(
+                onNavigateHome = onNavigateHome,
+                onNavigateToFavorite = onNavigateToFavorite
+            )
         }
     ) { paddingValues ->
         Box(
@@ -113,7 +117,10 @@ fun SearchScreen(
 }
 
 @Composable
-fun SearchBottomBar(onNavigateHome: () -> Unit) {
+fun SearchBottomBar(
+    onNavigateHome: () -> Unit,
+    onNavigateToFavorite: () -> Unit // Ditambahkan
+) {
     NavigationBar(
         containerColor = Color.White,
         contentColor = Color.Black // Make sure content is Black
@@ -122,16 +129,18 @@ fun SearchBottomBar(onNavigateHome: () -> Unit) {
             selected = false,
             onClick = onNavigateHome,
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
-                unselectedIconColor = Color.DarkGray,
+                unselectedIconColor = Color.DarkGray, // Darker gray for unselected
                 indicatorColor = Color.Transparent
             )
         )
         NavigationBarItem(
-            selected = true, 
-            onClick = {}, 
+            selected = true,
+            onClick = {}, // Already on search
             icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 unselectedIconColor = Color.DarkGray,
@@ -140,8 +149,9 @@ fun SearchBottomBar(onNavigateHome: () -> Unit) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {},
+            onClick = onNavigateToFavorite,
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Saved") },
+            // Removed label
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 unselectedIconColor = Color.DarkGray,
@@ -157,7 +167,8 @@ fun SearchScreenPreview() {
     RekomendasiResepMakananTheme {
         SearchScreen(
             onNavigateHome = {},
-            onNavigateToDetail = {}
+            onNavigateToDetail = {},
+            onNavigateToFavorite = {} // Ditambahkan
         )
     }
 }
