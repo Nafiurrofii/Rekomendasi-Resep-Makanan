@@ -10,11 +10,10 @@ import kotlinx.coroutines.withContext
 
 class RecipeRepository {
 
-    // Simulasi database favorit lokal
-    private val favoriteRecipeIds = MutableStateFlow(setOf(1, 5)) // Rendang dan Nasi Pecel sebagai favorit default
+    private val favoriteRecipeIds = MutableStateFlow(setOf(1, 5))
+    private val dummyRecipes = MutableStateFlow(getInitialDummyRecipes())
 
     suspend fun getCategories(): List<Category> = withContext(Dispatchers.IO) {
-        // ... (kode kategori tetap sama)
         listOf(
             Category(1, "Nusantara", ""),
             Category(2, "Chinese", ""),
@@ -24,14 +23,12 @@ class RecipeRepository {
     }
 
     suspend fun getPopularRecipes(): List<Recipe> = withContext(Dispatchers.IO) {
-        getDummyRecipes()
+        dummyRecipes.value
     }
 
     suspend fun searchRecipes(query: String): List<Recipe> = withContext(Dispatchers.IO) {
-        val allRecipes = getDummyRecipes()
         if (query.isBlank()) return@withContext emptyList()
-        
-        allRecipes.filter {
+        dummyRecipes.value.filter {
             it.title.contains(query, ignoreCase = true) || 
             it.category.contains(query, ignoreCase = true)
         }
@@ -39,8 +36,7 @@ class RecipeRepository {
     
     suspend fun getSuggestions(query: String): List<String> = withContext(Dispatchers.IO) {
         if (query.length < 2) return@withContext emptyList()
-        val allRecipes = getDummyRecipes()
-        allRecipes
+        dummyRecipes.value
             .filter { it.title.contains(query, ignoreCase = true) }
             .map { it.title }
             .distinct()
@@ -48,27 +44,24 @@ class RecipeRepository {
     }
 
     suspend fun getRecipeById(id: Int): Recipe? = withContext(Dispatchers.IO) {
-        getDummyRecipes().find { it.id == id }
+        dummyRecipes.value.find { it.id == id }
     }
 
     suspend fun getRecipesByCategory(categoryName: String): List<Recipe> = withContext(Dispatchers.IO) {
-        getDummyRecipes().filter { 
+        dummyRecipes.value.filter { 
             it.category.equals(categoryName, ignoreCase = true) 
         }
     }
 
-    // Fungsi baru untuk mendapatkan resep favorit
     suspend fun getFavoriteRecipes(): List<Recipe> = withContext(Dispatchers.IO) {
         val favoriteIds = favoriteRecipeIds.value
-        getDummyRecipes().filter { it.id in favoriteIds }
+        dummyRecipes.value.filter { it.id in favoriteIds }
     }
 
-    // Fungsi baru untuk cek status favorit
     fun isFavorite(id: Int): Boolean {
         return id in favoriteRecipeIds.value
     }
 
-    // Fungsi baru untuk toggle status favorit
     suspend fun toggleFavoriteStatus(id: Int) = withContext(Dispatchers.Default) {
         val currentFavorites = favoriteRecipeIds.value.toMutableSet()
         if (id in currentFavorites) {
@@ -78,8 +71,26 @@ class RecipeRepository {
         }
         favoriteRecipeIds.value = currentFavorites
     }
+    
+    // Fungsi baru untuk menambah resep
+    suspend fun addRecipe(name: String, ingredients: String, steps: String, imageUrl: String) = withContext(Dispatchers.IO) {
+        val currentList = dummyRecipes.value.toMutableList()
+        val newId = (currentList.maxOfOrNull { it.id } ?: 0) + 1
+        currentList.add(
+            Recipe(
+                id = newId,
+                title = name,
+                category = "Lainnya", // Kategori default
+                image = R.drawable.rendang1, // Gambar default, karena imageUrl string, tapi model kita Int
+                description = "Deskripsi untuk $name",
+                ingredients = ingredients.split("\n"),
+                steps = steps.split("\n")
+            )
+        )
+        dummyRecipes.value = currentList
+    }
 
-    private fun getDummyRecipes(): List<Recipe> {
+    private fun getInitialDummyRecipes(): List<Recipe> {
         val descriptionText = "Rendang adalah hidangan tradisional khas suku Minangkabau..."
         val ingredientsRendang = listOf("Bahan utama:", "1. 2 liter santan...")
         val stepsRendang = listOf("1. Haluskan bumbu...", "2. Masak santan...")
@@ -87,11 +98,7 @@ class RecipeRepository {
         return listOf(
             Recipe(1, "Rendang", "Nusantara", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
             Recipe(2, "Fuyunghay", "Chinese", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
-            Recipe(3, "Bolognaise", "Western", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
-            Recipe(4, "Salad Buah", "Vegan", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
-            Recipe(5, "Nasi Pecel", "Nusantara", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang),
-            Recipe(6, "Capcay", "Chinese", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang)
-            // ... resep lainnya
+            Recipe(3, "Bolognaise", "Western", R.drawable.rendang1, descriptionText, ingredientsRendang, stepsRendang)
         )
     }
 }

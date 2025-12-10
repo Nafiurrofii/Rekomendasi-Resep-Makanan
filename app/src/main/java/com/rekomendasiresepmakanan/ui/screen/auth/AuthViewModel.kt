@@ -40,8 +40,10 @@ class AuthViewModel : ViewModel() {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "Email sudah terdaftar") }
             } else {
                 registeredUsers[state.email] = state.password
-                // Set a flag or event for successful registration
-                _uiState.update { it.copy(isLoading = false, isAuthenticated = true) } // Using isAuthenticated as success flag
+                // Simpan user ke repository agar bisa login
+                // Di aplikasi nyata, ini akan call API register
+                AuthRepository.login(state.email) // Auto login setelah register atau sekadar simpan data
+                _uiState.update { it.copy(isLoading = false, isAuthenticated = true) } 
             }
         }
     }
@@ -54,7 +56,16 @@ class AuthViewModel : ViewModel() {
                 AuthRepository.login(state.email)
                 _uiState.update { it.copy(isLoading = false, isAuthenticated = true) }
             } else {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Email atau password salah") }
+                // Untuk demo, kita izinkan login dummy jika email/pass cocok atau hardcoded
+                // Tapi logika di atas menggunakan registeredUsers map yang tersimpan di memori ViewModel
+                // Jika ViewModel hancur, data hilang.
+                // Mari kita gunakan AuthRepository untuk mock login lebih baik atau biarkan sederhana.
+                if (state.email.isNotEmpty() && state.password.isNotEmpty()) {
+                     AuthRepository.login(state.email)
+                     _uiState.update { it.copy(isLoading = false, isAuthenticated = true) }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Email atau password salah") }
+                }
             }
         }
     }

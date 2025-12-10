@@ -34,11 +34,13 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
-    onNavigateToCategories: () -> Unit,
+    onNavigateToCategories: () -> Unit, 
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToFavorite: () -> Unit,
     onNavigateToAbout: () -> Unit,
-    onNavigateToProfile: () -> Unit, // Ditambahkan
+    onNavigateToProfile: () -> Unit,
+    onNavigateToAddRecipe: () -> Unit,
+    onNavigateToPopular: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -72,7 +74,10 @@ fun HomeScreen(
                 NavigationDrawerItem(
                     label = { Text("Tambah Resep") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onNavigateToAddRecipe()
+                    },
                     icon = { Icon(Icons.Default.Add, contentDescription = null) }
                 )
                 NavigationDrawerItem(
@@ -128,7 +133,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Popular Recipes Section
-                SectionHeader(title = "Resep Populer")
+                SectionHeader(
+                    title = "Resep Populer",
+                    onSeeAllClick = onNavigateToPopular
+                )
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -273,7 +281,9 @@ fun HomeScreenPreview() {
             onNavigateToCategoryDetail = {},
             onNavigateToFavorite = {},
             onNavigateToAbout = {},
-            onNavigateToProfile = {} // Ditambahkan
+            onNavigateToProfile = {},
+            onNavigateToAddRecipe = {},
+            onNavigateToPopular = {}
         )
     }
 }

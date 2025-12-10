@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.rekomendasiresepmakanan.ui.screen.about.AboutScreen
+import com.rekomendasiresepmakanan.ui.screen.add_recipe.AddRecipeScreen
 import com.rekomendasiresepmakanan.ui.screen.auth.LoginScreen
 import com.rekomendasiresepmakanan.ui.screen.auth.ProfileScreen
 import com.rekomendasiresepmakanan.ui.screen.auth.RegisterScreen
@@ -16,6 +17,7 @@ import com.rekomendasiresepmakanan.ui.screen.detail.DetailScreen
 import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteScreen
 import com.rekomendasiresepmakanan.ui.screen.home.HomeScreen
 import com.rekomendasiresepmakanan.ui.screen.ingredients.IngredientsScreen
+import com.rekomendasiresepmakanan.ui.screen.popular.PopularScreen
 import com.rekomendasiresepmakanan.ui.screen.search.SearchScreen
 import com.rekomendasiresepmakanan.ui.screen.steps.StepsScreen
 
@@ -30,7 +32,23 @@ fun AppNavHost(navController: NavHostController) {
                 onNavigateToCategoryDetail = { categoryName -> navController.navigate("category_detail/$categoryName") },
                 onNavigateToFavorite = { navController.navigate("favorite") },
                 onNavigateToAbout = { navController.navigate("about") },
-                onNavigateToProfile = { navController.navigate("profile") }
+                onNavigateToProfile = { navController.navigate("profile") },
+                onNavigateToAddRecipe = { navController.navigate("add_recipe") },
+                onNavigateToPopular = { navController.navigate("popular_recipes") } // Ditambahkan
+            )
+        }
+
+        composable("popular_recipes") {
+            PopularScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToDetail = { recipeId -> navController.navigate("detail/$recipeId") }
+            )
+        }
+
+        composable("add_recipe") {
+            AddRecipeScreen(
+                onBackClick = { navController.popBackStack() },
+                onRecipeAdded = { navController.popBackStack() }
             )
         }
 
@@ -57,7 +75,6 @@ fun AppNavHost(navController: NavHostController) {
             ProfileScreen(
                 onBackClick = { navController.popBackStack() },
                 onLogout = {
-                    // Diubah: kembali ke home screen setelah logout
                     navController.navigate("home") { 
                         popUpTo("home") { inclusive = true } 
                     }
