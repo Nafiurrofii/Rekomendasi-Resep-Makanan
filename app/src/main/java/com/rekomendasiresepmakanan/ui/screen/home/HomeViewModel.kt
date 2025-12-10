@@ -1,48 +1,51 @@
 package com.rekomendasiresepmakanan.ui.screen.home
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rekomendasiresepmakanan.data.repository.RecipeRepository
-import com.rekomendasiresepmakanan.domain.model.Category
-import com.rekomendasiresepmakanan.domain.model.Recipe
+import com.rekomendasiresepmakanan.data.model.RecipeNetwork
+import com.rekomendasiresepmakanan.data.remote.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
-    private val repository = RecipeRepository()
 
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+    // State untuk menyimpan data resep dari API
+    private val _recipes = MutableStateFlow<List<RecipeNetwork>>(emptyList())
+    val recipes = _recipes.asStateFlow()
 
-    private val _popularRecipes = MutableStateFlow<List<Recipe>>(emptyList())
-    val popularRecipes: StateFlow<List<Recipe>> = _popularRecipes.asStateFlow()
+    // State untuk loading (agar bisa menampilkan progress bar)
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
-    val isDrawerOpen: MutableState<Boolean> = mutableStateOf(false)
+    // State untuk error message (jika gagal ambil data)
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
     init {
-        loadData()
+        fetchRecipes()
     }
 
-    private fun loadData() {
+    fun fetchRecipes() {
         viewModelScope.launch {
-            _categories.value = repository.getCategories()
-            _popularRecipes.value = repository.getPopularRecipes()
+            _isLoading.value = true
+            _errorMessage.value = null // Reset error
+
+            try {
+                // Panggil API Laravel
+                val response = RetrofitClient.instance.getRecipes()
+
+                // Masukkan data dari respon API ke state
+                _recipes.value = response.data
+
+            } catch (e: Exception) {
+                // Jika error (misal server mati atau tidak ada internet)
+                e.printStackTrace()
+                _errorMessage.value = "Gagal memuat data: ${e.localizedMessage}"
+            } finally {
+                // Selesai loading (baik sukses maupun gagal)
+                _isLoading.value = false
+            }
         }
-    }
-    
-    fun toggleDrawer() {
-        isDrawerOpen.value = !isDrawerOpen.value
-    }
-    
-    fun openDrawer() {
-        isDrawerOpen.value = true
-    }
-    
-    fun closeDrawer() {
-        isDrawerOpen.value = false
     }
 }

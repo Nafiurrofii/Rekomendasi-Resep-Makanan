@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +35,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToDetail: (Int) -> Unit,
-    onNavigateToCategories: () -> Unit, 
+    onNavigateToCategories: () -> Unit,
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToFavorite: () -> Unit,
     onNavigateToAbout: () -> Unit,
@@ -43,11 +44,18 @@ fun HomeScreen(
     onNavigateToPopular: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
-    val categories by viewModel.categories.collectAsState()
-    val popularRecipes by viewModel.popularRecipes.collectAsState()
+    // 1. Ambil state dari ViewModel yang baru (Data dari API)
+    val recipes by viewModel.recipes.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // (Opsional) Jika kategori masih pakai dummy data, biarkan baris ini
+    // Jika kategori juga dari API, buat state serupa di VM
+    // val categories by viewModel.categories.collectAsState()
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -105,55 +113,69 @@ fun HomeScreen(
                 )
             }
         ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                // Banner Section
-                BannerSection()
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Category Section
-                SectionHeader(title = "Kategori Resep", onSeeAllClick = onNavigateToCategories)
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(categories) { category ->
-                        CategoryItem(
-                            category = category,
-                            onClick = { onNavigateToCategoryDetail(category.name) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Popular Recipes Section
-                SectionHeader(
-                    title = "Resep Populer",
-                    onSeeAllClick = onNavigateToPopular
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(popularRecipes) { recipe ->
-                        Box(modifier = Modifier.clickable { onNavigateToDetail(recipe.id) }) {
-                             RecipeCard(recipe = recipe)
+            // 2. Logika Tampilan: Loading, Error, atau Data
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (errorMessage != null) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "Gagal memuat data", color = MaterialTheme.colorScheme.error)
+                        Text(text = errorMessage ?: "", style = MaterialTheme.typography.bodySmall)
+                        Button(onClick = { viewModel.fetchRecipes() }) {
+                            Text("Coba Lagi")
                         }
                     }
+                } else {
+                    // Data Berhasil Dimuat -> Tampilkan Konten Utama
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        // Banner Section
+                        BannerSection()
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Category Section (Masih Dummy/Lokal dulu tidak apa-apa)
+                        // SectionHeader(title = "Kategori Resep", onSeeAllClick = onNavigateToCategories)
+                        // LazyRow(...) { ... }
+
+                        // Popular Recipes Section (INI DARI LARAVEL)
+                        SectionHeader(
+                            title = "Resep Populer",
+                            onSeeAllClick = onNavigateToPopular
+                        )
+
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(recipes) { recipe ->
+                                Box(modifier = Modifier.clickable { onNavigateToDetail(recipe.id) }) {
+                                    RecipeCard(
+                                        name = recipe.title,
+                                        origin = "Nusantara", // Atau ambil dari API: recipe.origin
+                                        imageUrl = recipe.imageUrl, // Pastikan ini String URL dari Laravel
+                                        onClick = { onNavigateToDetail(recipe.id) }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
-                
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
+// ... (Sisa kode komponen di bawah ini biarkan sama: HomeTopBar, BannerSection, SectionHeader, HomeBottomBar, Preview)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(onMenuClick: () -> Unit) {
@@ -175,7 +197,7 @@ fun BannerSection() {
             .height(220.dp)
             .padding(16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.LightGray) 
+            .background(Color.LightGray)
     ) {
         Image(
             painter = painterResource(id = R.drawable.rendang1),
@@ -183,7 +205,7 @@ fun BannerSection() {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -193,7 +215,7 @@ fun BannerSection() {
                     )
                 )
         )
-        
+
         Text(
             text = "Masakan Nusantara",
             color = Color.White,
