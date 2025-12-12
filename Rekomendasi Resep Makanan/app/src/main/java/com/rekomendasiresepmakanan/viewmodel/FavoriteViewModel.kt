@@ -1,0 +1,3 @@
+package com.rekomendasiresepmakanan.viewmodel
+
+annotation class FavoriteViewModel
