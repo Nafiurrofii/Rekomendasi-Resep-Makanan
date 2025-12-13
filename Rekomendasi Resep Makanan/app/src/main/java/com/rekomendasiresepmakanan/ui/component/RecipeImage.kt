@@ -1,5 +1,6 @@
 package com.rekomendasiresepmakanan.ui.component
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -32,16 +33,90 @@ import coil.request.ImageRequest
  * - Jika error -> Loading
  * - Style: Container abu-abu muda, Rounded 12dp, Loading di tengah.
  */
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.rekomendasiresepmakanan.data.repository.RecipeRepository
+
 @Composable
 fun RecipeImage(
+    recipeId: Int = 0,
     imageUrl: String?,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
-    shape: Shape = RoundedCornerShape(12.dp), // Rounded 12dp default
+    shape: Shape = RoundedCornerShape(12.dp),
     contentScale: ContentScale = ContentScale.Crop
 ) {
+    // 1. Logic Room / Local
+    if (recipeId != 0) {
+        val context = LocalContext.current
+        val repository = RecipeRepository
+        
+        // Observe Blob
+        val imageBlob by repository.getRecipeImageFlow(context, recipeId).collectAsState(initial = null)
+        
+        // Trigger Download
+        LaunchedEffect(recipeId, imageUrl) {
+            if (imageBlob == null && !imageUrl.isNullOrBlank()) {
+                 repository.downloadAndSaveImage(context, recipeId, imageUrl)
+            }
+        }
+        
+        // Render
+        if (imageBlob != null) {
+            // Decode Bitmap
+             val bitmap by produceState<ImageBitmap?>(initialValue = null, imageBlob) {
+                value = withContext(Dispatchers.Default) {
+                    try {
+                        BitmapFactory.decodeByteArray(imageBlob!!, 0, imageBlob!!.size)?.asImageBitmap()
+                    } catch (e: Exception) { null }
+                }
+            }
+            
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap!!,
+                    contentDescription = contentDescription,
+                    contentScale = contentScale,
+                    modifier = modifier.clip(shape)
+                )
+            } else {
+                // Failed decode -> Fallback to Network
+                NetworkImage(imageUrl, modifier, shape, contentDescription, contentScale)
+            }
+        } else {
+             // Blob belum ada -> Fallback to Network (Load URL while downloading in bg)
+             NetworkImage(imageUrl, modifier, shape, contentDescription, contentScale)
+        }
+
+    } else {
+        // 2. Logic Network Only (Coil)
+        NetworkImage(imageUrl, modifier, shape, contentDescription, contentScale)
+    }
+}
+
+/**
+ * Reusable Network Image dengan Coil + Error Handling yang Jelas
+ */
+@Composable
+fun NetworkImage(
+    imageUrl: String?,
+    modifier: Modifier,
+    shape: Shape,
+    contentDescription: String?,
+    contentScale: ContentScale
+) {
     if (imageUrl.isNullOrEmpty()) {
-        LoadingContainer(modifier = modifier, shape = shape)
+        PlaceholderContainer(modifier, shape)
     } else {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -55,8 +130,7 @@ fun RecipeImage(
                 LoadingContainer(modifier = Modifier.matchParentSize(), shape = shape)
             },
             error = {
-                // Jika gagal load, tetap tampilkan loading (sesuai request)
-                LoadingContainer(modifier = Modifier.matchParentSize(), shape = shape)
+                ErrorContainer(modifier = Modifier.matchParentSize(), shape = shape)
             }
         )
     }
@@ -70,28 +144,64 @@ fun LoadingContainer(
     Box(
         modifier = modifier
             .clip(shape)
-            .background(Color.LightGray.copy(alpha = 0.3f)), // Background abu-abu muda
+            .background(Color.LightGray.copy(alpha = 0.3f)),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.fillMaxSize(0.3f), // Ukuran indicator proporsional
+            modifier = Modifier.fillMaxSize(0.4f), 
             color = MaterialTheme.colorScheme.primary,
             strokeWidth = 3.dp
         )
     }
 }
 
-// --- Contoh Penggunaan (Preview & Example) ---
+@Composable
+fun ErrorContainer(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp)
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(Color.LightGray.copy(alpha = 0.5f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.BrokenImage,
+            contentDescription = "Error loading image",
+            tint = Color.Gray,
+            modifier = Modifier.fillMaxSize(0.4f)
+        )
+    }
+}
+
+@Composable
+fun PlaceholderContainer(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp)
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(Color.LightGray.copy(alpha = 0.3f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Image,
+            contentDescription = "No Image",
+            tint = Color.Gray,
+            modifier = Modifier.fillMaxSize(0.4f)
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
 fun RecipeImageGridExamplePreview() {
-    // Dummy Data
     val dummyImages = listOf(
         "https://via.placeholder.com/150", 
-        "", // Kosong -> Loading
-        "invalid-url", // Error -> Loading
-        null, // Null -> Loading
+        "", 
+        "invalid-url", 
         "https://via.placeholder.com/150/0000FF"
     )
 
@@ -103,7 +213,7 @@ fun RecipeImageGridExamplePreview() {
             Box(
                 modifier = Modifier
                     .padding(8.dp)
-                    .aspectRatio(1f) // Aspect ratio kotak
+                    .aspectRatio(1f)
             ) {
                RecipeImage(
                    imageUrl = dummyImages[index],

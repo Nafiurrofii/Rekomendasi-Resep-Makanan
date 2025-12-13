@@ -1,6 +1,12 @@
 package com.rekomendasiresepmakanan.data.remote.response
 
-data class BaseResponse(
+import com.google.gson.annotations.SerializedName
+
+data class BaseResponse<T>(
+    @SerializedName("status")
     val status: String,
-    val message: String? = null
+    @SerializedName("message")
+    val message: String? = null,
+    @SerializedName("data")
+    val data: T? = null
 )

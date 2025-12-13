@@ -25,9 +25,11 @@ fun IngredientsScreen(
     var ingredients by remember { mutableStateOf<List<String>>(emptyList()) }
     val scope = rememberCoroutineScope()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
     LaunchedEffect(recipeId) {
         scope.launch {
-            val recipe = repository.getRecipeById(recipeId)
+            val recipe = repository.getRecipeById(context, recipeId)
             ingredients = recipe?.ingredients ?: emptyList()
         }
     }

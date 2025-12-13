@@ -1,15 +1,33 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RecipeController;
 use App\Http\Controllers\Api\CategoryController;
 
-// PENTING: Pastikan tidak ada prefix '/api' lagi di sini
-// Laravel otomatis menambahkan '/api' di depan semua route di file ini.
-Route::get('/recipes', [RecipeController::class, 'index']);
-Route::get('/recipes/{id}', [RecipeController::class, 'show']);
-Route::post('/recipes', [RecipeController::class, 'store']);
-Route::put('/recipes/{id}', [RecipeController::class, 'update']);
-Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
-Route::get('/categories', [CategoryController::class, 'index']);
+// Route group untuk resep
+Route::controller(RecipeController::class)->group(function () {
+    Route::get('recipes', 'index');
+    Route::get('recipes/{recipe}', 'show');
+    Route::post('recipes', 'store'); // CREATE: menangani multipart/form-data
+    Route::post('recipes/{recipe}', 'update'); // UPDATE: menggunakan POST untuk handle multipart/form-data
+    Route::delete('recipes/{recipe}', 'destroy'); // DELETE
+});
+
+Route::get('categories', [CategoryController::class, 'index']);
+
+// Auth Routes
+use App\Http\Controllers\Api\AuthController;
+Route::post('register', [AuthController::class, 'register']);
+Route::get('register', function() {
+    return response()->json(['message' => 'Method Not Allowed. Use POST.'], 405);
+});
+Route::post('login', [AuthController::class, 'login']);
+Route::get('login', function() {
+    return response()->json(['message' => 'Unauthorized'], 401);
+})->name('login');
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');

@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
-import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteViewModel
+//import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteViewModel
+import com.rekomendasiresepmakanan.ui.screens.favorite.FavoriteViewModel
 
 @Composable
 fun SavedScreen(

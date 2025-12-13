@@ -6,6 +6,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navArgument
+import com.rekomendasiresepmakanan.data.repository.AuthRepository
 import com.rekomendasiresepmakanan.ui.screen.about.AboutScreen
 import com.rekomendasiresepmakanan.ui.screen.add_recipe.AddRecipeScreen
 import com.rekomendasiresepmakanan.ui.screen.auth.LoginScreen
@@ -32,7 +34,13 @@ fun AppNavHost(navController: NavHostController) {
                 onNavigateToCategoryDetail = { categoryName -> navController.navigate("category_detail/$categoryName") },
                 onNavigateToFavorite = { navController.navigate("favorite") },
                 onNavigateToAbout = { navController.navigate("about") },
-                onNavigateToProfile = { navController.navigate("profile") },
+                onNavigateToProfile = { 
+                    if (AuthRepository.isAuthenticated.value) {
+                         navController.navigate("profile")
+                    } else {
+                         navController.navigate("login")
+                    }
+                },
                 onNavigateToAddRecipe = { navController.navigate("add_recipe") },
                 onNavigateToPopular = { navController.navigate("popular_recipes") } // Ditambahkan
             )
@@ -47,8 +55,7 @@ fun AppNavHost(navController: NavHostController) {
 
         composable("add_recipe") {
             AddRecipeScreen(
-                onBackClick = { navController.popBackStack() },
-                onRecipeAdded = { navController.popBackStack() }
+                navigateBack = { navController.popBackStack() }
             )
         }
 
@@ -125,7 +132,9 @@ fun AppNavHost(navController: NavHostController) {
             route = "detail/{recipeId}",
             arguments = listOf(navArgument("recipeId") { type = NavType.IntType })
         ) { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getInt("recipeId") ?: 0
             DetailScreen(
+                recipeId = recipeId,
                 onBackClick = { navController.popBackStack() },
                 onNavigateToIngredients = { id -> navController.navigate("ingredients/$id") },
                 onNavigateToSteps = { id -> navController.navigate("steps/$id") },

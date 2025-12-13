@@ -5,37 +5,38 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.rekomendasiresepmakanan.data.local.dao.FavoriteDao
+import com.rekomendasiresepmakanan.data.local.dao.RecipeDao
+import com.rekomendasiresepmakanan.data.local.dao.RecipeImageDao
+import com.rekomendasiresepmakanan.data.local.entity.RecipeImageEntity
+import com.rekomendasiresepmakanan.data.local.entity.RecipeEntity
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
 
-/**
- * Room Database untuk aplikasi.
- * Version 1: Tabel favorites untuk menyimpan resep favorit.
- */
 @Database(
-    entities = [FavoriteEntity::class],
-    version = 1,
+    entities = [RecipeEntity::class, FavoriteEntity::class, RecipeImageEntity::class],
+    version = 3, 
     exportSchema = false
 )
+@androidx.room.TypeConverters(com.rekomendasiresepmakanan.data.local.entity.Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     
+    abstract fun recipeDao(): RecipeDao
     abstract fun favoriteDao(): FavoriteDao
+    abstract fun recipeImageDao(): RecipeImageDao
     
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
         
-        /**
-         * Singleton pattern untuk mencegah multiple instance database.
-         */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "rekomendasi_resep_database"
+                    "recipe_database"
                 )
-                    .fallbackToDestructiveMigration() // Hapus data lama jika schema berubah
-                    .build()
+                .fallbackToDestructiveMigration() // Drop & recreate on version change
+                .build()
+                
                 INSTANCE = instance
                 instance
             }

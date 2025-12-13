@@ -1,34 +1,72 @@
 package com.rekomendasiresepmakanan.data.remote
 
-import com.rekomendasiresepmakanan.data.model.ApiResponse
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.POST
-import retrofit2.http.Body
-import com.rekomendasiresepmakanan.domain.model.Recipe
+import com.rekomendasiresepmakanan.data.local.model.RecipeResponse
+import com.rekomendasiresepmakanan.data.remote.request.LoginRequest
+import com.rekomendasiresepmakanan.data.remote.request.RegisterRequest
+import com.rekomendasiresepmakanan.data.remote.response.AuthResponse
+import com.rekomendasiresepmakanan.data.remote.response.BaseResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.*
 
 interface ApiService {
 
-    // Mengambil SEMUA resep dari endpoint Laravel: /api/recipes
-    @GET("api/recipes")
-    suspend fun getRecipes(): ApiResponse<List<Recipe>>
+    @POST("login")
+    suspend fun login(@Body request: LoginRequest): BaseResponse<AuthResponse>
 
-    // (Opsional) Mengambil DETAIL resep berdasarkan ID: /api/recipes/{id}
-    @GET("api/recipes/{id}")
-    suspend fun getRecipeDetail(@Path("id") id: Int): ApiResponse<Recipe>
+    @POST("register")
+    suspend fun register(@Body request: RegisterRequest): BaseResponse<AuthResponse>
 
-    // Menambahkan resep baru
-    @POST("api/recipes")
-    suspend fun addRecipe(@Body recipe: Recipe): ApiResponse<Recipe>
+    // Mengambil semua resep
+    @GET("recipes")
+    suspend fun getRecipes(): BaseResponse<List<RecipeResponse>>
 
-    // Update resep
-    @retrofit2.http.PUT("api/recipes/{id}")
+    // Mengambil semua kategori
+    @GET("categories")
+    suspend fun getCategories(): BaseResponse<List<com.rekomendasiresepmakanan.domain.model.Category>>
+
+    // Mengambil detail resep berdasarkan ID
+    @GET("recipes/{id}")
+    suspend fun getRecipeById(@Path("id") id: Int): BaseResponse<RecipeResponse>
+
+    /**
+     * Menambah resep baru dengan gambar (Multipart)
+     * Menggunakan @Part eksplisit untuk menghindari masalah encoding map
+     */
+    @Multipart
+    @POST("recipes")
+    suspend fun addRecipe(
+        @Part("nama_resep") name: RequestBody,
+        @Part("category_id") categoryId: RequestBody,
+        @Part("deskripsi") description: RequestBody,
+        @Part("bahan") ingredients: RequestBody,
+        @Part("langkah_langkah") steps: RequestBody,
+        @Part image: MultipartBody.Part?,
+        @Part("image_url") imageUrl: RequestBody?
+    ): BaseResponse<RecipeResponse>
+
+    /**
+     * Mengupdate resep dengan atau tanpa gambar baru
+     */
+    @Multipart
+    @POST("recipes/{id}")
     suspend fun updateRecipe(
-        @retrofit2.http.Path("id") id: Int,
-        @retrofit2.http.Body recipe: com.rekomendasiresepmakanan.data.remote.request.RecipeRequest
-    ): ApiResponse<Recipe>
+        @Path("id") recipeId: Int,
+        @Part("nama_resep") name: RequestBody,
+        @Part("category_id") categoryId: RequestBody,
+        @Part("deskripsi") description: RequestBody,
+        @Part("bahan") ingredients: RequestBody,
+        @Part("langkah_langkah") steps: RequestBody,
+        @Part image: MultipartBody.Part?,
+        @Part("image_url") imageUrl: RequestBody?
+    ): BaseResponse<RecipeResponse>
 
-    // Delete resep
-    @retrofit2.http.DELETE("api/recipes/{id}")
-    suspend fun deleteRecipe(@retrofit2.http.Path("id") id: Int): com.rekomendasiresepmakanan.data.remote.response.BaseResponse
+    /**
+     * Menghapus resep
+     */
+    @DELETE("recipes/{id}")
+    suspend fun deleteRecipe(@Path("id") recipeId: Int): BaseResponse<Unit>
+
+    @POST("logout")
+    suspend fun logout(): BaseResponse<Unit>
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rekomendasiresepmakanan.R
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
+import com.rekomendasiresepmakanan.ui.screens.favorite.FavoriteViewModel
 import com.rekomendasiresepmakanan.ui.theme.RekomendasiResepMakananTheme
 
 /**

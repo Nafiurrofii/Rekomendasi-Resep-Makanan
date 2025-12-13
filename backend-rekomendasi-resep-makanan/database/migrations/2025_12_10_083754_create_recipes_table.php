@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('deskripsi');
             $table->json('bahan');
             $table->json('langkah_langkah');
-            $table->string('gambar')->nullable();
+            $table->text('image')->nullable();
             $table->timestamps();
         });
     }

@@ -25,6 +25,13 @@ interface FavoriteDao {
     suspend fun getFavoriteByRecipeId(recipeId: Int): FavoriteEntity?
     
     /**
+     * Cek apakah resep dengan ID tertentu adalah favorit (versi reactive/Flow).
+     * Berguna untuk update UI realtime.
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE recipeId = :recipeId LIMIT 1)")
+    fun isFavorite(recipeId: Int): Flow<Boolean>
+
+    /**
      * Menambahkan resep ke favorit.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -3,27 +3,30 @@ package com.rekomendasiresepmakanan.ui.screen.edit_recipe
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rekomendasiresepmakanan.domain.model.UiState
+import com.rekomendasiresepmakanan.domain.model.Recipe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditRecipeScreen(
     recipeId: Int,
     onNavigateBack: () -> Unit,
-    onNavigateHome: () -> Unit, // For delete success
+    onNavigateHome: () -> Unit,
     viewModel: EditRecipeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -32,21 +35,19 @@ fun EditRecipeScreen(
 
     // Form States
     var title by remember { mutableStateOf("") }
-    var categoryId by remember { mutableStateOf(1) } // Default Nusantara
+    var categoryId by remember { mutableStateOf(1) }
     var description by remember { mutableStateOf("") }
     var ingredients by remember { mutableStateOf("") }
     var instructions by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
 
-    // Init data load
     LaunchedEffect(recipeId) {
         viewModel.loadRecipe(recipeId)
     }
 
-    // Prefill form when data loaded
     LaunchedEffect(uiState) {
-        if (uiState is UiState.Success) {
-            val recipe = (uiState as UiState.Success).data
+        if (uiState is UiState.Success<*>) {
+            val recipe = (uiState as UiState.Success<Recipe>).data
             title = recipe.title
             categoryId = recipe.categoryId
             description = recipe.description
@@ -56,17 +57,15 @@ fun EditRecipeScreen(
         }
     }
 
-    // Handle update success
     LaunchedEffect(updateState) {
-        if (updateState is UiState.Success) {
+        if (updateState is UiState.Success<*>) {
             onNavigateBack()
             viewModel.resetUpdateState()
         }
     }
 
-    // Handle delete success
     LaunchedEffect(deleteState) {
-        if (deleteState is UiState.Success) {
+        if (deleteState is UiState.Success<*>) {
             onNavigateHome()
         }
     }
@@ -77,7 +76,7 @@ fun EditRecipeScreen(
                 title = { Text("Edit Resep") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -99,7 +98,7 @@ fun EditRecipeScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is UiState.Success -> {
+                is UiState.Success<*> -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -107,7 +106,6 @@ fun EditRecipeScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Title
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
@@ -115,29 +113,10 @@ fun EditRecipeScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Kategori
                         var expandedCategory by remember { mutableStateOf(false) }
-                        val categories = listOf("Nusantara", "Chinese", "Western", "Dessert", "Lainnya")
+                        val categories by viewModel.categories.collectAsState()
                         
-                        fun getCategoryName(id: Int): String {
-                            return when(id) {
-                                1 -> "Nusantara"
-                                2 -> "Chinese"
-                                3 -> "Western"
-                                4 -> "Dessert"
-                                else -> "Lainnya"
-                            }
-                        }
-
-                        fun getCategoryIdByName(name: String): Int {
-                            return when(name) {
-                                "Nusantara" -> 1
-                                "Chinese" -> 2
-                                "Western" -> 3
-                                "Dessert" -> 4
-                                else -> 5
-                            }
-                        }
+                        val selectedCategoryName = categories.find { it.id == categoryId }?.name ?: "Pilih Kategori"
 
                         ExposedDropdownMenuBox(
                             expanded = expandedCategory,
@@ -145,7 +124,7 @@ fun EditRecipeScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             OutlinedTextField(
-                                value = getCategoryName(categoryId),
+                                value = selectedCategoryName,
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Kategori") },
@@ -156,11 +135,11 @@ fun EditRecipeScreen(
                                 expanded = expandedCategory,
                                 onDismissRequest = { expandedCategory = false }
                             ) {
-                                categories.forEach { categoryName ->
+                                categories.forEach { category ->
                                     DropdownMenuItem(
-                                        text = { Text(categoryName) },
+                                        text = { Text(category.name) },
                                         onClick = {
-                                            categoryId = getCategoryIdByName(categoryName)
+                                            categoryId = category.id
                                             expandedCategory = false
                                         }
                                     )
@@ -168,7 +147,6 @@ fun EditRecipeScreen(
                             }
                         }
 
-                        // Description
                         OutlinedTextField(
                             value = description,
                             onValueChange = { description = it },
@@ -177,7 +155,6 @@ fun EditRecipeScreen(
                             minLines = 3
                         )
 
-                        // Ingredients
                         OutlinedTextField(
                             value = ingredients,
                             onValueChange = { ingredients = it },
@@ -186,7 +163,6 @@ fun EditRecipeScreen(
                             minLines = 5
                         )
 
-                        // Instructions
                         OutlinedTextField(
                             value = instructions,
                             onValueChange = { instructions = it },
@@ -195,39 +171,91 @@ fun EditRecipeScreen(
                             minLines = 5
                         )
                         
-                        // Gambar (Image Picker Style)
                         val imagePickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
                             contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
                             onResult = { uri ->
-                                viewModel.onImagePicked(uri) // Update ViewModel
-                                // Update local preview state if needed, but ViewModel holds the truth
+                                viewModel.onImagePicked(uri)
                             }
                         )
 
-                        // Logic display value: New URI filename > Old URL > Empty
-                        val displayImageValue = viewModel.newImageUri?.lastPathSegment ?: imageUrl
-                        
-                        OutlinedTextField(
-                            value = displayImageValue,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Gambar") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { imagePickerLauncher.launch("image/*") },
-                            placeholder = { Text("Pilih Gambar") },
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Link,
-                                    contentDescription = "Upload Gambar",
-                                    modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
-                                )
+                        // Image Logic
+                        var isUrlMode by remember { mutableStateOf(viewModel.newImageUrlInput.isNotEmpty()) }
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Gambar Resep", fontWeight = FontWeight.Medium)
+                                Spacer(modifier = Modifier.weight(1f))
+                                TextButton(onClick = { isUrlMode = !isUrlMode }) {
+                                    Text(if (isUrlMode) "Switch to Upload" else "Switch to Link")
+                                }
                             }
-                        )
+
+                            if (isUrlMode) {
+                                OutlinedTextField(
+                                    value = viewModel.newImageUrlInput,
+                                    onValueChange = viewModel::onImageUrlChanged,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Image URL") },
+                                    placeholder = { Text("https://example.com/image.jpg") },
+                                    shape = RoundedCornerShape(8.dp),
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                // Preview Link/Old URL
+                                val previewUrl = if (viewModel.newImageUrlInput.isNotBlank()) viewModel.newImageUrlInput else imageUrl
+                                if (!previewUrl.isNullOrBlank()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color.Gray.copy(alpha = 0.1f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        androidx.compose.foundation.Image(
+                                            painter = coil.compose.rememberAsyncImagePainter(model = previewUrl),
+                                            contentDescription = "URL Preview",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Image Picker Mode
+                                val displayUri = viewModel.newImageUri ?: (if (imageUrl?.startsWith("http") == false) imageUrl else null)
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        .clickable { imagePickerLauncher.launch("image/*") },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (displayUri == null && viewModel.newImageUri == null && imageUrl.isNullOrBlank()) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(Icons.Default.Link, contentDescription = null) // Fallback icon
+                                            Text("Select Image")
+                                        }
+                                    } else {
+                                        // Prioritize New URI -> Old Image URL
+                                        val model = viewModel.newImageUri ?: imageUrl
+                                        androidx.compose.foundation.Image(
+                                            painter = coil.compose.rememberAsyncImagePainter(model = model),
+                                            contentDescription = "Preview",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Update Button
                         Button(
                             onClick = {
                                 viewModel.updateRecipe(
@@ -244,7 +272,6 @@ fun EditRecipeScreen(
                             }
                         }
                         
-                        // Error message from update
                         if (updateState is UiState.Error) {
                             Text(
                                 text = (updateState as UiState.Error).message,

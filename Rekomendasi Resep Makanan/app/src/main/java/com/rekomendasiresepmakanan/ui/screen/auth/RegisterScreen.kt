@@ -101,7 +101,7 @@ fun RegisterScreen(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                     ) {
-                        Text("Masuk", color = Color.White)
+                        Text("Daftar", color = Color.White)
                     }
                 }
             }

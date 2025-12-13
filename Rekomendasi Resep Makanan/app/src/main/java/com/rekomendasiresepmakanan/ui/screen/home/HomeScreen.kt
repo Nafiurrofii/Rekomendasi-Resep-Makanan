@@ -43,6 +43,19 @@ fun HomeScreen(
     onNavigateToPopular: () -> Unit, // Ditambahkan
     viewModel: HomeViewModel = viewModel()
 ) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.fetchRecipes()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val categories by viewModel.categories.collectAsState()
     val popularRecipes by viewModel.popularRecipes.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)

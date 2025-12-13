@@ -1,5 +1,7 @@
 package com.rekomendasiresepmakanan.ui.screens.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,20 +23,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage // Pastikan import ini ada untuk memuat gambar
+import coil.compose.AsyncImage
+import com.rekomendasiresepmakanan.domain.model.Recipe
+import com.rekomendasiresepmakanan.domain.model.UiState
+import com.rekomendasiresepmakanan.ui.screens.favorite.FavoriteScreen
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     onNavigateToDetail: (Int) -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    // favoriteViewModel bisa di-instantiate di dalam jika menggunakan default factory
 ) {
-    // Observe UI State
-    val uiState by viewModel.uiState.collectAsState()
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val selectedItemIndex = remember { mutableStateOf(0) }
+    val selectedItemIndex = remember { mutableIntStateOf(0) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -50,159 +53,184 @@ fun HomeScreen(
     ) {
         Scaffold(
             topBar = {
-                HomeTopBar(onMenuClick = { scope.launch { drawerState.open() } })
+                // TopBar hanya muncul di Home (index 0) atau bisa disesuaikan
+                if (selectedItemIndex.intValue == 0) {
+                    HomeTopBar(onMenuClick = { scope.launch { drawerState.open() } })
+                }
             },
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
-                        selected = selectedItemIndex.value == 0,
-                        onClick = { selectedItemIndex.value = 0 },
+                        selected = selectedItemIndex.intValue == 0,
+                        onClick = { selectedItemIndex.intValue = 0 },
                         icon = { Icon(Icons.Filled.Home, contentDescription = "Beranda") },
                         label = { Text("Beranda") }
                     )
                     NavigationBarItem(
-                        selected = selectedItemIndex.value == 1,
-                        onClick = { selectedItemIndex.value = 1 },
+                        selected = selectedItemIndex.intValue == 1,
+                        onClick = { selectedItemIndex.intValue = 1 },
                         icon = { Icon(Icons.Filled.Search, contentDescription = "Cari") },
                         label = { Text("Cari") }
                     )
                     NavigationBarItem(
-                        selected = selectedItemIndex.value == 2,
-                        onClick = { selectedItemIndex.value = 2 },
-                        icon = { Icon(Icons.Filled.FavoriteBorder, contentDescription = "Favorit") },
+                        selected = selectedItemIndex.intValue == 2,
+                        onClick = { selectedItemIndex.intValue = 2 },
+                        icon = { Icon(Icons.Filled.Favorite, contentDescription = "Favorit") },
                         label = { Text("Favorit") }
                     )
                 }
             }
         ) { paddingValues ->
-
-            // Handle berbagai UI State
-            when (val state = uiState) {
-                is com.rekomendasiresepmakanan.domain.model.UiState.Loading -> {
-                    // Loading State - Loading indicator di tengah
-                    Box( modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CircularProgressIndicator()
-                            Text(
-                                "Memuat resep...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
-                            )
-                        }
+            Box(modifier = Modifier.padding(paddingValues)) {
+                when (selectedItemIndex.intValue) {
+                    0 -> HomeContent(
+                        onNavigateToDetail = onNavigateToDetail,
+                        viewModel = homeViewModel
+                    )
+                    1 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Fitur Pencarian Segera Hadir")
                     }
-                }
-
-                is com.rekomendasiresepmakanan.domain.model.UiState.Error -> {
-                    // Error State - Pesan error + tombol retry
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.padding(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ErrorOutline,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = Color.Red.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                text = state.message,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.DarkGray,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                            Button(
-                                onClick = { viewModel.retry() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Black
-                                )
-                            ) {
-                                Icon(Icons.Default.Refresh, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Coba Lagi")
-                            }
-                        }
-                    }
-                }
-
-                is com.rekomendasiresepmakanan.domain.model.UiState.Success -> {
-                    // Success State - Tampilkan data
-                    val recipes = state.data
-                    
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        item { BannerSection() }
-                        item { CategorySection() }
-                        item { SectionHeader(title = "Resep Populer") }
-
-                        item {
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(recipes) { recipe ->
-                                    RecipeCardItem(
-                                        title = recipe.title,
-                                        imageUrl = recipe.image,  // Gunakan URL dari database
-                                        origin = recipe.category?.name ?: "Lainnya",
-                                        onClick = { onNavigateToDetail(recipe.id) }
-                                    )
-                                }
-                            }
-                        }
-
-                        item { Spacer(modifier = Modifier.height(16.dp)) }
-                    }
+                    2 -> FavoriteScreen(
+                        onNavigateToDetail = onNavigateToDetail
+                    )
                 }
             }
         }
     }
 }
 
-// Komponen Kartu Resep Sederhana (dibuat lokal di sini agar tidak error import)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    onNavigateToDetail: (Int) -> Unit,
+    viewModel: HomeViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
+    
+    // Refresh handler - simple implementation
+    // For proper PullRefresh, need M3 PullToRefreshBox (experimental in newer libs) or Accompanist
+    // Here we use a simple FAB/Button for refresh if error/offline
+    
+    Column(modifier = Modifier.fillMaxSize()) {
+        
+        // Offline Indicator
+        AnimatedVisibility(visible = !isOnline) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                   modifier = Modifier
+                       .fillMaxWidth()
+                       .padding(8.dp),
+                   horizontalArrangement = Arrangement.Center,
+                   verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.WifiOff, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Mode Offline - Menampilkan data cache", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+
+        when (val state = uiState) {
+            is UiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            is UiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = state.message, color = Color.Red)
+                        Button(onClick = { viewModel.retry() }) {
+                            Text("Coba Lagi")
+                        }
+                    }
+                }
+            }
+            is UiState.Success -> {
+                val recipes = state.data
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item { Spacer(Modifier.height(16.dp)) }
+                    item { BannerSection() }
+                    item { CategorySection() }
+                    item { SectionHeader(title = "Semua Resep") }
+                    
+                    if (recipes.isEmpty()) {
+                        item {
+                            Text("Tidak ada resep", modifier = Modifier.padding(16.dp))
+                        }
+                    } else {
+                        val chunkedRecipes = recipes.chunked(2)
+                        items(chunkedRecipes) { rowRecipes ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                for (recipe in rowRecipes) {
+                                    RecipeCardItem(
+                                        id = recipe.id,
+                                        title = recipe.title,
+                                        imageUrl = recipe.image,
+                                        origin = recipe.category?.name ?: "Umum",
+                                        onClick = { onNavigateToDetail(recipe.id) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowRecipes.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                    item { Spacer(Modifier.height(16.dp)) }
+                }
+            }
+        }
+    }
+}
+
+private fun HomeViewModel.retry() {
+    TODO("Not yet implemented")
+}
+
+// ... Rest of components (RecipeCardItem, HomeTopBar, etc) same as before ...
+// For brevity, I will copy only necessary parts or rely on you to assume they are there.
+// But to be safe (since overwrite), I must include everything.
+
 @Composable
 fun RecipeCardItem(
+    id: Int,
     title: String,
-    imageUrl: String?,  // Changed from imageRes to imageUrl
+    imageUrl: String?,
     origin: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.width(160.dp)
 ) {
     Card(
-        modifier = Modifier
-            .width(160.dp)
+        modifier = modifier
             .height(200.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
-            // Load image dari database URL menggunakan AsyncImage
-            AsyncImage(
-                model = imageUrl,
+            com.rekomendasiresepmakanan.ui.component.RecipeImage(
+                recipeId = id,
+                imageUrl = imageUrl,
                 contentDescription = title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
-                contentScale = ContentScale.Crop,
-                placeholder = ColorPainter(Color.Gray.copy(alpha = 0.3f)),
-                error = ColorPainter(Color.Gray.copy(alpha = 0.5f))
+                    .height(120.dp)
             )
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(text = origin, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
@@ -216,7 +244,7 @@ fun RecipeCardItem(
 @Composable
 fun HomeTopBar(onMenuClick: () -> Unit) {
     TopAppBar(
-        title = {},
+        title = { Text("Resep Makanan", fontWeight = FontWeight.Bold) },
         navigationIcon = {
             IconButton(onClick = onMenuClick) {
                 Icon(Icons.Filled.Menu, contentDescription = "Menu")
@@ -236,12 +264,11 @@ fun BannerSection() {
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(180.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Placeholder Banner
-            androidx.compose.foundation.Image(
-                painter = ColorPainter(Color.DarkGray),
+            Image(
+                painter = ColorPainter(Color.DarkGray), // Placeholder
                 contentDescription = "Banner",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -251,7 +278,7 @@ fun BannerSection() {
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
             ) {
-                Text("Masakan Nusantara", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Inspirasi Masak Harian", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -260,7 +287,7 @@ fun BannerSection() {
 @Composable
 fun CategorySection() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeader(title = "Kategori Resep")
+        SectionHeader(title = "Kategori")
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

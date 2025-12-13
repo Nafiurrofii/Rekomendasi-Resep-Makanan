@@ -1,5 +1,7 @@
 package com.rekomendasiresepmakanan.ui.screen.home
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rekomendasiresepmakanan.data.repository.RecipeRepository
@@ -10,11 +12,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+import com.rekomendasiresepmakanan.domain.model.Resource
+
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = RecipeRepository
+    private val context = application.applicationContext
 
-    // State untuk kategori (Dummy dulu karena belum ada API)
+    // State untuk kategori
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
@@ -22,11 +27,11 @@ class HomeViewModel : ViewModel() {
     private val _popularRecipes = MutableStateFlow<List<Recipe>>(emptyList())
     val popularRecipes = _popularRecipes.asStateFlow()
 
-    // State untuk loading (agar bisa menampilkan progress bar)
+    // State untuk loading
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    // State untuk error message (jika gagal ambil data)
+    // State untuk error message
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
@@ -36,32 +41,44 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun loadCategories() {
-        // Dummy Data Kategori
-        _categories.value = listOf(
-            Category(1, "Nusantara"),
-            Category(2, "Chinese"),
-            Category(3, "Western"),
-            Category(4, "Dessert")
-        )
+        viewModelScope.launch {
+            // Ambil kategori dari API (Database)
+            val result = repository.getCategories()
+            if (result.isNotEmpty()) {
+                _categories.value = result
+            } else {
+                // Fallback jika API kosong/gagal (untuk sementara hardcode jika DB kosong)
+                 _categories.value = listOf(
+                    Category(1, "Nusantara"),
+                    Category(2, "Chinese"),
+                    Category(3, "Western"),
+                    Category(4, "Dessert"),
+                    Category(5, "Lainnya")
+                )
+            }
+        }
     }
 
     fun fetchRecipes() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null // Reset error
-
-            try {
-                // Ambil data dari Repository (yang sudah handle API + Mapping)
-                val recipes = repository.getPopularRecipes()
-                _popularRecipes.value = recipes
-
-            } catch (e: Exception) {
-                // Jika error (misal server mati atau tidak ada internet)
-                e.printStackTrace()
-                _errorMessage.value = "Gagal memuat data: ${e.localizedMessage}"
-            } finally {
-                // Selesai loading (baik sukses maupun gagal)
-                _isLoading.value = false
+            // Gunakan getRecipes(context) yang memiliki fitur Fallback Cache (DB) -> API -> DB Update
+            repository.getRecipes(context).collect { resource ->
+                when(resource) {
+                    is Resource.Loading -> {
+                         _isLoading.value = true
+                    }
+                    is Resource.Success -> {
+                        _isLoading.value = false
+                        _popularRecipes.value = resource.data ?: emptyList()
+                        _errorMessage.value = null
+                    }
+                    is Resource.Error -> {
+                        _isLoading.value = false
+                        // Jika Cache ada isinya, Error tidak dipancarkan oleh repository (sudah dihandle),
+                        // tapi jika cache kosong dan API gagal, baru error muncul.
+                        _errorMessage.value = resource.message
+                    }
+                }
             }
         }
     }
