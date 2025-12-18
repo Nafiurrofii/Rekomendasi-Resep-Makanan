@@ -26,8 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
-//import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteViewModel
-import com.rekomendasiresepmakanan.ui.screens.favorite.FavoriteViewModel
+import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteViewModel
 
 @Composable
 fun SavedScreen(
@@ -114,7 +113,6 @@ fun SavedRecipeCard(
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
-            // Gambar
             // Gambar
             RecipeImage(
                 imageUrl = favorite.image,

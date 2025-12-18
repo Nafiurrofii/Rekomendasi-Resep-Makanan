@@ -1,7 +1,7 @@
 package com.rekomendasiresepmakanan.data.local
 
 import com.rekomendasiresepmakanan.R
-import com.rekomendasiresepmakanan.data.local.model.HomeItem
+import com.rekomendasiresepmakanan.domain.model.HomeItem
 
 object DummyData {
 

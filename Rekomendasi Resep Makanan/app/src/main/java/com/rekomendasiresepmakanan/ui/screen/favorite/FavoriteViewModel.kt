@@ -1,4 +1,4 @@
-package com.rekomendasiresepmakanan.ui.screens.favorite
+﻿package com.rekomendasiresepmakanan.ui.screen.favorite
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -20,3 +20,4 @@ class FavoriteViewModel(application: Application) : AndroidViewModel(application
             initialValue = emptyList()
         )
 }
+

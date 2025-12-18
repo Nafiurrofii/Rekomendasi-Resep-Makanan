@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // IP Address Laptop (Wi-Fi)
-    private const val BASE_URL = "http://192.168.50.81:8000/api/"
+    private const val BASE_URL = "http://192.168.40.82:8000/api/"
 
     val apiService: ApiService by lazy {
         val logging = HttpLoggingInterceptor().apply {

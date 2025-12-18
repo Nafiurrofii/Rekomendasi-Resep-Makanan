@@ -1,3 +1,1 @@
-package com.rekomendasiresepmakanan.viewmodel
-
-annotation class FavoriteViewModel
+// File deleted

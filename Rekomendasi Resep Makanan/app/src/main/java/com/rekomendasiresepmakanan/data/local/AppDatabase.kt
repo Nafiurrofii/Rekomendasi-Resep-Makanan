@@ -4,19 +4,19 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.rekomendasiresepmakanan.data.local.dao.FavoriteDao
-import com.rekomendasiresepmakanan.data.local.dao.RecipeDao
-import com.rekomendasiresepmakanan.data.local.dao.RecipeImageDao
-import com.rekomendasiresepmakanan.data.local.entity.RecipeImageEntity
 import com.rekomendasiresepmakanan.data.local.entity.RecipeEntity
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
+import com.rekomendasiresepmakanan.data.local.entity.RecipeImageEntity
+import com.rekomendasiresepmakanan.data.local.entity.Converters
 
 @Database(
     entities = [RecipeEntity::class, FavoriteEntity::class, RecipeImageEntity::class],
-    version = 3, 
+    version = 4, // Increment untuk trigger fallbackToDestructiveMigration
     exportSchema = false
 )
-@androidx.room.TypeConverters(com.rekomendasiresepmakanan.data.local.entity.Converters::class)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     
     abstract fun recipeDao(): RecipeDao

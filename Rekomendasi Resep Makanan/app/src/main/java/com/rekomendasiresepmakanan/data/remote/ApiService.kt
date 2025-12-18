@@ -1,6 +1,6 @@
 package com.rekomendasiresepmakanan.data.remote
 
-import com.rekomendasiresepmakanan.data.local.model.RecipeResponse
+import com.rekomendasiresepmakanan.data.remote.response.RecipeResponse
 import com.rekomendasiresepmakanan.data.remote.request.LoginRequest
 import com.rekomendasiresepmakanan.data.remote.request.RegisterRequest
 import com.rekomendasiresepmakanan.data.remote.response.AuthResponse

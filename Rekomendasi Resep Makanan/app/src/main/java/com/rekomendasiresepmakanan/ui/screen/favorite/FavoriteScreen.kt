@@ -1,4 +1,4 @@
-package com.rekomendasiresepmakanan.ui.screen.favorite
+﻿package com.rekomendasiresepmakanan.ui.screen.favorite
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,7 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rekomendasiresepmakanan.R
 import com.rekomendasiresepmakanan.data.local.entity.FavoriteEntity
-import com.rekomendasiresepmakanan.ui.screens.favorite.FavoriteViewModel
+// Corrected import
+import com.rekomendasiresepmakanan.ui.screen.favorite.FavoriteViewModel
 import com.rekomendasiresepmakanan.ui.theme.RekomendasiResepMakananTheme
 
 /**

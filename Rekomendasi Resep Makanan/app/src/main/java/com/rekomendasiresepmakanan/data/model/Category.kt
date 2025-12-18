@@ -1,4 +1,4 @@
-package com.rekomendasiresepmakanan.domain.model
+﻿package com.rekomendasiresepmakanan.data.model
 
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
@@ -10,9 +10,3 @@ data class Category(
     val name: String
 )
 
-data class HomeItem(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val image: Int
-)

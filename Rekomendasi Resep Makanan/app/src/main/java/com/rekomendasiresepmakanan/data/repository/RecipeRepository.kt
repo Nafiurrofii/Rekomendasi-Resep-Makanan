@@ -3,6 +3,7 @@ package com.rekomendasiresepmakanan.data.repository
 import android.content.Context
 import android.net.Uri
 import com.rekomendasiresepmakanan.data.local.AppDatabase
+import com.rekomendasiresepmakanan.data.local.entity.RecipeImageEntity
 import com.rekomendasiresepmakanan.data.mapper.toEntity
 import com.rekomendasiresepmakanan.data.mapper.toFavoriteEntity
 import com.rekomendasiresepmakanan.data.remote.RetrofitClient
@@ -23,7 +24,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
-import com.rekomendasiresepmakanan.data.local.entity.RecipeImageEntity
 import kotlinx.coroutines.withContext
 
 object RecipeRepository {
@@ -96,9 +96,6 @@ object RecipeRepository {
         return cachedEntity?.toDomain()
     }
 
-    /**
-     * Add Recipe - Online Only (Sync logic could be added)
-     */
     /**
      * Add Recipe - Online Only (Sync logic could be added)
      * Updated to use Explicit Parts to fix 422 Error
@@ -390,9 +387,11 @@ object RecipeRepository {
             if (response.status == "success") {
                 response.data ?: emptyList()
             } else {
+                android.util.Log.w("RecipeRepository", "getCategories failed: ${response.message}")
                 emptyList()
             }
         } catch (e: Exception) {
+            android.util.Log.e("RecipeRepository", "getCategories error: ${e.message}", e)
             emptyList()
         }
     }
